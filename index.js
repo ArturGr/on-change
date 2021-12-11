@@ -17,6 +17,7 @@ const defaultOptions = {
 	ignoreUnderscores: false,
 	ignoreDetached: false,
 	details: false,
+	observePath: [],
 };
 
 const onChange = (object, onChange, options = {}) => {
@@ -26,7 +27,7 @@ const onChange = (object, onChange, options = {}) => {
 	};
 
 	const proxyTarget = Symbol('ProxyTarget');
-	const {equals, isShallow, ignoreDetached, details} = options;
+	const {equals, isShallow, ignoreDetached, details, observePath} = options;
 	const cache = new Cache(equals);
 	const hasOnValidate = typeof options.onValidate === 'function';
 	const smartClone = new SmartClone(hasOnValidate);
@@ -38,7 +39,7 @@ const onChange = (object, onChange, options = {}) => {
 
 	const handleChangeOnTarget = (target, property, value, previous) => {
 		if (
-			!ignoreProperty(cache, options, property)
+			!ignoreProperty(cache, options, property, target)
 			&& !(ignoreDetached && cache.isDetached(target, object))
 		) {
 			handleChange(cache.getPath(target), property, value, previous);
@@ -63,7 +64,7 @@ const onChange = (object, onChange, options = {}) => {
 			isBuiltinWithoutMutableMethods(value)
 			|| property === 'constructor'
 			|| (isShallow && !SmartClone.isHandledMethod(target, property))
-			|| ignoreProperty(cache, options, property)
+			|| ignoreProperty(cache, options, property, target)
 			|| cache.isGetInvariant(target, property)
 			|| (ignoreDetached && cache.isDetached(target, object))
 		) {
